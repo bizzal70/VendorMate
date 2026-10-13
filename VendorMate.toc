@@ -1,0 +1,11 @@
+## Interface: 16001
+## Title: VendorMate
+## Notes: Sells your junk and repairs your gear whenever you open a vendor. Type /vendormate.
+## Author: bizzal70
+## Version: 0.1.0
+## SavedVariables: VendorMateDB
+## IconTexture: Interface\Icons\INV_Misc_Coin_02
+## AddonCompartmentFunc: VendorMate_OnAddonCompartmentClick
+
+Core.lua
+Options.lua
