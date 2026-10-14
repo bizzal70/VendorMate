@@ -66,6 +66,7 @@ local function CreateRow(parent, y, isCheckbox, getText, isTicked, onClick)
     end
     row:SetScript("OnClick", function()
         onClick()
+        ns.UpdateDurability()
         ns.RefreshOptions()
     end)
     controls[#controls + 1] = row
@@ -74,7 +75,7 @@ end
 
 local function CreateWindow()
     window = CreateFrame("Frame", addonName .. "Options", UIParent)
-    window:SetSize(328, 166)
+    window:SetSize(328, 232)
     window:SetPoint("CENTER")
     window:SetFrameStrata("HIGH")
     window:SetToplevel(true)
@@ -117,6 +118,24 @@ local function CreateWindow()
         function() return "Say in chat what was sold and repaired" end,
         function() return ns.db.report end,
         function() ns.db.report = not ns.db.report end)
+    CreateRow(window, -138, true,
+        function() return "Warn on screen when gear is wearing out" end,
+        function() return ns.db.durabilityWarn end,
+        function() ns.db.durabilityWarn = not ns.db.durabilityWarn end)
+    -- Cycles through the levels the warning can be set to.
+    CreateRow(window, -168, false,
+        function() return ("Warn below %d%% durability"):format(ns.db.durabilityLevel) end,
+        nil,
+        function()
+            local levels = ns.DURABILITY_LEVELS
+            local nextLevel = levels[1]
+            for index, level in ipairs(levels) do
+                if level == ns.db.durabilityLevel then
+                    nextLevel = levels[index % #levels + 1]
+                end
+            end
+            ns.db.durabilityLevel = nextLevel
+        end)
 
     local hint = window:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     hint:SetPoint("BOTTOMLEFT", 16, 12)

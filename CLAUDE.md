@@ -18,6 +18,7 @@ Sells your junk and repairs your gear whenever you open a vendor. One addon, one
 - Where the client lacks `SellAllJunkItems`, it falls back to `C_Container.UseContainerItem` on each grey item with a sale value, one every 0.15 s, stopping when the vendor closes.
 - The chat line is printed a second later, from the change in `GetMoney`, because the money for sold items arrives after the call.
 - The whole vendor handler runs under `pcall`: it acts on the player's bags and money unprompted, so an unexpected difference in the game's API must end in one chat line, not an error box.
+- `Durability.lua` reads `GetInventoryItemDurability` for slots 1 to 18 and shows a draggable on-screen line while the lowest is below `durabilityLevel` (10, 25 or 50; default 25), plus one chat line per spell of wear. It rechecks on `UPDATE_INVENTORY_DURABILITY`, equipment changes, leaving a vendor and leaving combat.
 - Not run in the real game when written (2026-10-13). Unverified: whether `SellAllJunkItems` may be called by an addon without a click, and whether it shows the game's own confirmation.
 
 ## Client facts

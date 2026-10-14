@@ -15,6 +15,8 @@ then tells you in chat what that earned and cost, for example:
 
 Hold **Shift** while opening a vendor to skip both that time.
 
+It also **warns you when your gear is wearing out**. While your most worn piece is below 25% durability, a line stays on screen ("Gear worn: 18% left"), with one line in chat when it first drops below. It clears once you repair. You can drag the line to wherever you like, and set the level to 10%, 25% or 50%.
+
 ## Options
 
 Type `/vendormate` to open the options, or use the addon's entry in the minimap's addon list.
@@ -24,6 +26,7 @@ Type `/vendormate` to open the options, or use the addon's entry in the minimap'
 | Sell junk when a vendor opens | `/vendormate junk` |
 | Repair when a vendor who can opens | `/vendormate repair` |
 | Say in chat what was sold and repaired | `/vendormate report` |
+| Warn on screen when gear is wearing out | `/vendormate worn` |
 
 ## Good to know
 

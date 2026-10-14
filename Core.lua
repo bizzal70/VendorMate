@@ -21,6 +21,9 @@ local defaults = {
     repair = true,
     -- Whether to say in chat what was sold and repaired.
     report = true,
+    -- Whether to warn when gear is wearing out, and below what percentage.
+    durabilityWarn = true,
+    durabilityLevel = 25,
 }
 
 function ns.Print(msg)
@@ -186,11 +189,18 @@ SlashCmdList.VENDORMATE = function(msg)
         ns.db.repair = not ns.db.repair
     elseif command == "report" then
         ns.db.report = not ns.db.report
+    elseif command == "worn" then
+        ns.db.durabilityWarn = not ns.db.durabilityWarn
+        ns.UpdateDurability()
+        ns.Print("The worn-gear warning is " .. (ns.db.durabilityWarn and ("on, below %d%%."):format(ns.db.durabilityLevel) or "off."))
+        ns.RefreshOptions()
+        return
     else
         ns.Print("/vendormate - open the options")
         ns.Print("/vendormate junk - sell grey items when a vendor opens, on or off")
         ns.Print("/vendormate repair - repair when a vendor who can opens, on or off")
         ns.Print("/vendormate report - say in chat what was sold and repaired, on or off")
+        ns.Print("/vendormate worn - warn on screen when gear is wearing out, on or off")
         ns.Print("Hold Shift while opening a vendor to skip both that time.")
         return
     end

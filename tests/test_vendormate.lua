@@ -28,6 +28,10 @@ C_Container = {
     UseContainerItem = function(bag, slot) USED[#USED + 1] = bag .. ":" .. slot end,
 }
 
+-- slot -> { current, maximum } durability; a slot left out has none
+GEAR = {}
+GetInventoryItemDurability = function(slot) local g = GEAR[slot]; if g then return g[1], g[2] end end
+
 local ns = LoadAddon(ADDON_DIR, "VendorMate")
 local function check(cond, what) if not cond then error("CHECK FAILED: " .. what, 2) end; io.write("pass  ", what, "\n") end
 -- Opens a vendor, lets the money from selling arrive, then runs the delayed report.
@@ -131,6 +135,45 @@ check(ok and PRINTED[#PRINTED]:find("Something went wrong at this vendor", 1, tr
 GetRepairAllCost = function() return REPAIR_COST, REPAIR_COST > 0 end
 Fire("MERCHANT_CLOSED"); AFTERS = {}
 
+-- worn gear
+local notice = VendorMateDurabilityNotice
+local label
+for _, f in ipairs(Frames()) do
+    if rawget(f, "__text") and f.__text:find("Gear worn", 1, true) then label = f end
+end
+Fire("PLAYER_LOGIN")
+check(not notice.__shown and ns.db.durabilityWarn and ns.db.durabilityLevel == 25, "with no worn gear there is no warning")
+GEAR = { [1] = { 60, 100 }, [5] = { 40, 100 }, [16] = { 90, 100 }, [4] = { 0, 0 } }
+Fire("UPDATE_INVENTORY_DURABILITY")
+check(not notice.__shown and ns.LowestDurability() == 40, "gear above the level raises no warning")
+local printedBefore = #PRINTED
+GEAR[5] = { 18, 100 }
+Fire("UPDATE_INVENTORY_DURABILITY")
+for _, f in ipairs(Frames()) do
+    if rawget(f, "__text") and f.__text:find("Gear worn", 1, true) then label = f end
+end
+check(notice.__shown and label.__text == "Gear worn: 18% left", "the most worn piece dropping below the level shows a line on screen")
+check(#PRINTED == printedBefore + 1 and PRINTED[#PRINTED]:find("down to 18%", 1, true) ~= nil, "and says so once in chat")
+GEAR[5] = { 12, 100 }
+Fire("UPDATE_INVENTORY_DURABILITY")
+check(label.__text == "Gear worn: 12% left" and #PRINTED == printedBefore + 1, "as it wears further the line updates, without repeating in chat")
+GEAR[5] = { 100, 100 }
+Fire("MERCHANT_CLOSED")
+check(not notice.__shown, "repairing clears the warning")
+GEAR[5] = { 20, 100 }
+Fire("UPDATE_INVENTORY_DURABILITY")
+check(notice.__shown and #PRINTED == printedBefore + 2, "and it warns afresh the next time")
+SlashCmdList.VENDORMATE("worn")
+check(not notice.__shown and not ns.db.durabilityWarn, "/vendormate worn turns the warning off")
+SlashCmdList.VENDORMATE("worn")
+check(notice.__shown, "and back on")
+notice.__scripts.OnDragStart(notice); notice.__scripts.OnDragStop(notice)
+check(ns.db.noticePosition ~= nil, "the on-screen line can be dragged, and remembers where")
+GetInventoryItemDurability = function() error("something this client does differently") end
+check(pcall(Fire, "UPDATE_INVENTORY_DURABILITY"), "a surprise from the game while checking gear does not raise an error")
+GetInventoryItemDurability = function(slot) local g = GEAR[slot]; if g then return g[1], g[2] end end
+GEAR = {}; Fire("UPDATE_INVENTORY_DURABILITY")
+
 -- options window
 SlashCmdList.VENDORMATE("")
 check(VendorMateOptions:IsShown(), "/vendormate opens the options")
@@ -138,14 +181,18 @@ local rows = {}
 for _, f in ipairs(Frames()) do
     if rawget(f, "Refresh") and f.__scripts.OnClick then rows[#rows + 1] = f end
 end
-check(#rows == 3, "the options have three controls")
-for index, key in ipairs({ "sellJunk", "repair", "report" }) do
+check(#rows == 5, "the options have five controls")
+for index, key in ipairs({ "sellJunk", "repair", "report", "durabilityWarn" }) do
     rows[index].__scripts.OnClick(rows[index])
     local off = not ns.db[key]
     rows[index].__scripts.OnClick(rows[index])
     assert(off and ns.db[key], key)
 end
-check(true, "each one switches its setting off and on")
+check(true, "each switch turns its setting off and on")
+rows[5].__scripts.OnClick(rows[5])
+check(ns.db.durabilityLevel == 50, "the last steps the warning level up")
+rows[5].__scripts.OnClick(rows[5]); rows[5].__scripts.OnClick(rows[5])
+check(ns.db.durabilityLevel == 25, "and comes back round")
 VendorMate_OnAddonCompartmentClick()
 check(not VendorMateOptions:IsShown(), "the minimap addon list entry toggles the options")
 SlashCmdList.VENDORMATE("help")
